@@ -5,6 +5,7 @@ import multiprocessing as mp
 from collections import deque
 import cv2
 import torch
+import random
 
 from detectron2.data import MetadataCatalog
 from detectron2.engine.defaults import DefaultPredictor
@@ -65,6 +66,13 @@ class VisualizationDemo(object):
             self.predictor = AsyncPredictor(cfg, num_gpus=num_gpu)
         else:
             self.predictor = DefaultPredictor(cfg)
+        reset_cls_test(self.predictor.model, classifier, num_classes)
+
+    def change_classfier(self, vocab):
+        self.metadata = MetadataCatalog.get("__unused+"+str(random.random()))
+        self.metadata.thing_classes = vocab.split(',')
+        classifier = get_clip_embeddings(self.metadata.thing_classes)
+        num_classes = len(self.metadata.thing_classes)
         reset_cls_test(self.predictor.model, classifier, num_classes)
 
     def run_on_image(self, image):
