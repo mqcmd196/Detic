@@ -71,7 +71,7 @@ class Predictor(object):
             cv2.imwrite(str(out_path), out.get_image()[:, :, ::-1])
             return out_path
         else:
-            return outputs
+            return outputs, metadata
 
 def get_clip_embeddings(vocabulary, prompt='a '):
     text_encoder = build_text_encoder(pretrain=True)
