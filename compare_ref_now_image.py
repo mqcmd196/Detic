@@ -1,8 +1,10 @@
-import cv2
-from detectron2.structures.instances import Instances
-from detectron2.structures.boxes import Boxes
 import numpy as np
+
+import cv2
+from detectron2.structures.boxes import Boxes
+from detectron2.structures.instances import Instances
 from predict import Predictor
+from torch import Tensor
 
 predictor = Predictor()
 
@@ -61,3 +63,12 @@ instances_dirty_dining_table: Instances = z_dirty_dining_table["instances"]
 # get index of dining table
 idx_dining_table = m_clean_dining_table.thing_classes.index("dining_table")
 field_of_dining_table = instances_clean_dining_table.get_fields()["pred_classes"] == idx_dining_table # Tensor of bools
+
+
+### Do these processes for all classes
+for cls_index in instances_dirty_dining_table.get_fields()['pred_classes']:
+    field_of_object = instances_dirty_dining_table.get_fields()["pred_classes"] == cls_index
+    bin_mask = instances_dirty_dining_table.get_fields()["pred_masks"][field_of_object][0].cpu().numpy()
+    mask = np.where(bin_mask, 255, 0).astype(np.uint8)
+    rgb_mask = cv2.cvtColor(mask, cv2.COLOR_GRAY2RGB)
+    im_dirty_dining_table_obj_masked = cv2.bitwise_and(im_dirty_dining_table_cropped, rgb_mask)
