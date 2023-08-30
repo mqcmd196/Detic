@@ -4,6 +4,7 @@ import tempfile
 from pathlib import Path
 import cog
 import time
+import numpy as np
 
 # import some common detectron2 utilities
 from detectron2.engine import DefaultPredictor
@@ -43,7 +44,12 @@ class Predictor(object):
         }
 
     def predict(self, image, vocabulary, custom_vocabulary, save=True):
-        image = cv2.imread(str(image))
+        if isinstance(image, str):
+            image = cv2.imread(str(image))
+        elif isinstance(image, np.ndarray):
+            image = image
+        else:
+            raise TypeError("Input image should be a path or a numpy array")
         if not vocabulary == 'custom':
             metadata = MetadataCatalog.get(self.BUILDIN_METADATA_PATH[vocabulary])
             classifier = self.BUILDIN_CLASSIFIER[vocabulary]

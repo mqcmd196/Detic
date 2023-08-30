@@ -1,5 +1,7 @@
 import cv2
 from detectron2.structures.instances import Instances
+from detectron2.structures.boxes import Boxes
+import numpy as np
 from predict import Predictor
 
 predictor = Predictor()
@@ -27,3 +29,35 @@ instances_clean: Instances = z_clean["instances"]
 # device='cuda:0')
 # IN: m_dirty.thing_classes[1177]
 # OUT: 'wheel'
+
+# get index of dining table
+idx_dining_table = m_clean.thing_classes.index("dining_table")
+field_of_dining_table = instances_clean.get_fields()["pred_classes"] == idx_dining_table # Tensor of bools
+
+# get mask of dining table
+bin_mask_of_dining_table = instances_clean.get_fields()["pred_masks"][field_of_dining_table][0].cpu().numpy()
+mask_of_dining_table = np.where(bin_mask_of_dining_table, 255, 0).astype(np.uint8)
+rgb_mask_of_dining_table = cv2.cvtColor(mask_of_dining_table, cv2.COLOR_GRAY2RGB)
+
+# get box of dining table
+box_of_dining_table = instances_clean.get_fields()["pred_boxes"][field_of_dining_table].tensor.cpu().numpy().astype(np.int32).squeeze()
+
+# get masked image of dining table
+im_clean_dining_table_masked = cv2.bitwise_and(im_clean, rgb_mask_of_dining_table)
+im_dirty_dining_table_masked = cv2.bitwise_and(im_dirty, rgb_mask_of_dining_table)
+
+# get cropped image of dining table. 2 images are same size
+im_clean_dining_table_cropped = im_clean[box_of_dining_table[1]:box_of_dining_table[3], box_of_dining_table[0]:box_of_dining_table[2]]
+im_dirty_dining_table_cropped = im_dirty[box_of_dining_table[1]:box_of_dining_table[3], box_of_dining_table[0]:box_of_dining_table[2]]
+
+
+###
+z_clean_dining_table, m_clean_dining_table = predictor.predict(im_clean_dining_table_cropped, vocabulary="lvis", custom_vocabulary=None, save=False)
+z_dirty_dining_table, m_dirty_dining_table = predictor.predict(im_dirty_dining_table_cropped, vocabulary="lvis", custom_vocabulary=None, save=False)
+
+instances_clean_dining_table: Instances = z_clean_dining_table["instances"]
+instances_dirty_dining_table: Instances = z_dirty_dining_table["instances"]
+
+# get index of dining table
+idx_dining_table = m_clean_dining_table.thing_classes.index("dining_table")
+field_of_dining_table = instances_clean_dining_table.get_fields()["pred_classes"] == idx_dining_table # Tensor of bools
