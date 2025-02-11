@@ -81,7 +81,7 @@ class VisualizationDemo(object):
         num_classes = len(self.metadata.thing_classes)
         reset_cls_test(self.predictor.model, classifier, num_classes)
 
-    def set_defalt_vocabulary(self):
+    def set_default_vocabulary(self):
         if not self._default_vocabulary:
             raise RuntimeError("The VisualizationDemo is not initalized with buildin vocabulary")
         self.metadata = MetadataCatalog.get(
